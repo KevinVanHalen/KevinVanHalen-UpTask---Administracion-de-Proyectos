@@ -31,12 +31,68 @@ function nuevoProyecto(e) {
 }
 
 function guardarProyectoDB(nombreProyecto) {
-    // Inyectar el html
-    var nuevoProyecto = document.createElement('li');
-    nuevoProyecto.innerHTML = `
-        <a href="#">
-            ${nombreProyecto}
-        </a>
-    `;
-    listaProyectos.appendChild(nuevoProyecto);
+    // Crear llamado a Ajax
+    var xhr = new XMLHttpRequest();
+
+    // Enviar datos por formdata
+    var datos = new FormData();
+    datos.append('proyecto', nombreProyecto);
+    datos.append('accion', 'crear');
+
+    // Abrir la conexión
+    xhr.open('POST', 'inc/modelos/modelo-proyecto.php', true);
+
+    // Cargar
+    xhr.onload = function() {
+        if(this.status === 200){
+            // Obtener datos de la respuesta
+            var respuesta = JSON.parse(xhr.responseText);
+            var proyecto = respuesta.nombre_proyecto,
+                id_proyecto = respuesta.id_insertado,
+                tipo = respuesta.tipo,
+                resultado = respuesta.respuesta;
+            
+            // Comprobar la inserción
+            if(resultado === 'correcto'){
+                // Fue exitoso
+                if(tipo === 'crear'){
+                    // Se creo un nuevo proyecto
+                    // Inyectar en el HTML
+                    var nuevoProyecto = document.createElement('li');
+                    nuevoProyecto.innerHTML = `
+                        <a href="index.php?id_proyecto=${id_proyecto}" id="${id_proyecto}">
+                            ${proyecto}
+                        </a>
+                    `;
+                    // Agregar al html
+                    listaProyectos.appendChild(nuevoProyecto);
+
+                    // Enviar alerta
+                    swal({
+                        title: 'Proyecto Creado',
+                        text: 'El proyecto: ' + proyecto + ' se creó correctamente',
+                        type: 'success'
+                    })
+                    .then(resultado => {
+                        // Redireccionar a la nueva URL
+                        if(resultado.value){
+                            window.location.href = 'index.php?id_proyecto=' + id_proyecto;
+                        }
+                    })
+                }else{
+                    // Se actualizo o se elimino
+                }
+            }else{
+                // Hubo un error
+                swal({
+                    type: 'error',
+                    title: 'Error!',
+                    text: 'Hubo un error!'
+                });
+            }
+        }
+    }
+
+    // Enviar el request
+    xhr.send(datos);
 }

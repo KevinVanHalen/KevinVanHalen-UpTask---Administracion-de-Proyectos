@@ -17,6 +17,7 @@
 
         // Importar la conexión
         include '../funciones/conexion.php';
+        
         try {
             // Realizar la consulta a la base de datos
             $stmt = $conn->prepare("INSERT INTO usuarios (usuario, password) VALUES (?, ?) ");
@@ -40,7 +41,7 @@
         } catch (Exception $e) {
             // En caso de un error, tomar la excepción
             $respuesta = array(
-                'pass' => $e->getMessage()
+                'error' => $e->getMessage()
             );
         }
 
@@ -92,7 +93,7 @@
         } catch (Exception $e) {
             // En caso de un error, tomar la excepción
             $respuesta = array(
-                'pass' => $e->getMessage()
+                'error' => $e->getMessage()
             );
         }
 
