@@ -22,7 +22,7 @@
         <?php
             $proyecto = obtenerNombreProyecto($id_proyecto);
             if($proyecto): ?>
-                <h1>
+                <h1> Proyecto Actual:
                     <?php foreach($proyecto as $nombre): ?>
                         <span><?php echo $nombre['nombre']; ?></span>
                     <?php endforeach; ?>
@@ -34,7 +34,7 @@
                         <input type="text" placeholder="Nombre Tarea" class="nombre-tarea"> 
                     </div>
                     <div class="campo enviar">
-                        <input type="hidden" id="<?php echo $id_proyecto; ?>">
+                        <input type="hidden" id="id_proyecto" value="<?php echo $id_proyecto; ?>">
                         <input type="submit" class="boton nueva-tarea" value="Agregar">
                     </div>
                 </form>
@@ -49,13 +49,25 @@
 
         <div class="listado-pendientes">
             <ul>
-                <li id="tarea:<?php echo $tarea['id'] ?>" class="tarea">
-                <p>Cambiar el Logotipo</p>
-                    <div class="acciones">
-                        <i class="far fa-check-circle"></i>
-                        <i class="fas fa-trash"></i>
-                    </div>
-                </li>  
+                <?php 
+                    // Obtiene las tareas del proyecto actual
+                    $tareas = obtenerTareasProyecto($id_proyecto);
+                    if($tareas->num_rows > 0){
+                        // Si hay tareas
+                        foreach($tareas as $tarea): ?>
+                            <li id="tarea:<?php echo $tarea['id'] ?>" class="tarea">
+                                <p><?php echo $tarea['nombre'] ?></p>
+                                <div class="acciones">
+                                    <i class="far fa-check-circle <?php echo ($tarea['estado'] === '1' ? 'completo' : ''); ?>"></i>
+                                    <i class="fas fa-trash"></i>
+                                </div>
+                            </li> 
+                    <?php endforeach;
+                    }else{
+                        // No hay tareas 
+                        echo "<p>No hay tareas en este proyecto</p>";
+                    }
+                ?> 
             </ul>
         </div>
     </main>

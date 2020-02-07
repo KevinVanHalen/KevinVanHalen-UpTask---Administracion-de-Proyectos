@@ -6,6 +6,9 @@ var listaProyectos = document.querySelector('ul#proyectos');
 function eventListeners() {
     // Boton para crear proyecto
     document.querySelector('.crear-proyecto a').addEventListener('click', nuevoProyecto);
+
+    // Boton para una nueva tarea
+    document.querySelector('.nueva-tarea').addEventListener('click', agregarTarea);
 }
 
 function nuevoProyecto(e) {
@@ -60,7 +63,7 @@ function guardarProyectoDB(nombreProyecto) {
                     // Inyectar en el HTML
                     var nuevoProyecto = document.createElement('li');
                     nuevoProyecto.innerHTML = `
-                        <a href="index.php?id_proyecto=${id_proyecto}" id="${id_proyecto}">
+                        <a href="index.php?id_proyecto=${id_proyecto}" id="proyecto:${id_proyecto}">
                             ${proyecto}
                         </a>
                     `;
@@ -95,4 +98,94 @@ function guardarProyectoDB(nombreProyecto) {
 
     // Enviar el request
     xhr.send(datos);
+}
+
+// Agregar una nueva tarea al proyecto actual
+function agregarTarea(e) {
+    e.preventDefault();
+    
+    var nombreTarea = document.querySelector('.nombre-tarea').value;
+
+    // Validar que el campo tenga algo escrito
+    if(nombreTarea === ''){
+        swal({
+            title: 'Error',
+            text: 'Una tarea no puede ir vacia',
+            type: 'error'
+        })
+    }else{
+        // La tarea tiene algo, insertar en PHP
+
+        // Crear llamado a Ajax
+        var xhr = new XMLHttpRequest();
+
+        // Crear formdata
+        var datos = new FormData();
+        datos.append('tarea', nombreTarea);
+        datos.append('accion', 'crear');
+        datos.append('id_proyecto', document.querySelector('#id_proyecto').value);
+
+        // Abrir la conexión
+        xhr.open('POST', 'inc/modelos/modelo-tareas.php', true);
+
+        // Ejecutarlo y respuesta
+        xhr.onload = function() {
+            if(this.status === 200){
+                // Todo correcto
+                var respuesta = JSON.parse(xhr.responseText);
+                // Asignar valores
+                var resultado = respuesta.respuesta,
+                    tarea = respuesta.tarea,
+                    id_insertado = respuesta.id_insertado,
+                    tipo= respuesta.tipo;
+
+                if(resultado === 'correcto'){
+                    // Se agrego correctamente
+                    if(tipo === 'crear'){
+                        // Lanzar alerta
+                        swal({
+                            type: 'success',
+                            title: 'Tarea creada',
+                            text: 'La tarea: ' + tarea + ' se creó correctamente'
+                        });
+
+                        // Construir el template
+                        var nuevaTarea = document.createElement('li');
+
+                        // Agregamos el ID
+                        nuevaTarea.id = 'tarea:'+id_insertado;
+
+                        // Agregar la clase tarea
+                        nuevaTarea.classList.add('tarea');
+
+                        // Construir el HTML
+                        nuevaTarea.innerHTML = `
+                            <p>${tarea}</p>
+                            <div class="acciones">
+                                <i class="far fa-check-circle"></i>
+                                <i class="fas fa-trash"></i>
+                            </div>
+                        `;
+
+                        // Agregarlo al HTML
+                        var listado = document.querySelector('.listado-pendientes ul');
+                        listado.appendChild(nuevaTarea);
+
+                        // Limpiar el formulario
+                        document.querySelector('.agregar-tarea').reset();
+                    }
+                }else{
+                    // Hubo un error
+                    swal({
+                        type: 'error',
+                        title: 'Error!',
+                        text: 'Hubo un error'
+                    })
+                }
+            }
+        }
+
+        // Enviar la consulta
+        xhr.send(datos);
+    }
 }
